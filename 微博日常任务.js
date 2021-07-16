@@ -11,6 +11,10 @@ let step = {
     hall2Task: () => {
         clickId('redpacketSave')
         sleep(3000)
+         // 去掉积分提示的弹窗
+         if(textStartsWith('连续签到第').findOnce() != null){
+            log(clickTar(textStartsWith('连续签到第').findOnce().parent().child(2)))
+        }
         var args = randSwipeArg(1800, 1800);
         swipe(args[0], args[1], args[2], args[3], args[4])
         sleep(1000)
@@ -22,7 +26,7 @@ let step = {
     },
     myWeiBo: () => {
         desc('我').findOnce().click()
-        sleep(300)
+        sleep(1000)
         clickTar(text('微博').findOnce())
         sleep(2000)
     }
@@ -115,7 +119,7 @@ let doTask = {
             sleep(2000)
         
             if(process === '没有'){
-                if(!clickId('complete_rp_iv') && (++validCount > 5)){
+                if(!clickId('complete_rp_iv') && (++validCount > 7)){
                     toastLog('图标不在了 程序退出')
                     break;
                 }
@@ -127,10 +131,12 @@ let doTask = {
     },
     
     collect: () => {
-        className('android.widget.Button').textEndsWith('积分').find().forEach((d) => {
-            d.click();
-            sleep(4000)
-        });
+        while(className('android.widget.Button').textEndsWith('积分').find().size() > 0){
+            let cur = className('android.widget.Button').textEndsWith('积分').findOnce()
+            log(cur.text())
+            cur.click();
+            sleep(4000)    
+        }
     },
     clear: () => {
         step.myWeiBo();
@@ -139,8 +145,9 @@ let doTask = {
         while(true){
             // 删除单条
             if(!id('contentTextView').exists()){ break; }
-
-            let exe = q == 0 || id('contentTextView').findOnce().contentDescription.toString().indexOf('Waiting For Delete') > -1;
+            
+            let contentDesc = id('contentTextView').findOnce().contentDescription.toString();
+            let exe = contentDesc.indexOf('TestWeibo：') > -1 || contentDesc.indexOf('Waiting For Delete') > -1;
             if(!exe){ break; }
 
             clickId('contentTextView')
@@ -150,25 +157,30 @@ let doTask = {
             clickTar(className('android.widget.TextView').text('删除').findOnce())
             sleep(300)
             clickTar(text('确定'))
-            sleep(500)
+            sleep(1000)
             q++;
 
             // 刷新
             clickId('titleSave')
-            sleep(300)
+            sleep(1000)
             clickTar(text('刷新').findOnce())
-            sleep(2000)
+            sleep(3000)
         }
-
+        toastLog('清理完成')
+        clickId('com.sina.weibo:id/titleBack')
+        sleep(1000)
+        desc('首页').findOnce().click()
     },
     start: () => {
         auto()
         toastLog(fmt("设备尺寸：%s*%s \n手机型号：%s \n安卓版本：%s", device.width, device.height, device.model, device.release));
         app.launchApp("微博");
-        sleep(5000);
+        sleep(1000);
+        clickTar(text('跳过').findOnce())
+        sleep(1000);
 
         step.hall2Task();
-
+       
         doTask.关注();
         sleep(1000)
 
@@ -183,15 +195,20 @@ let doTask = {
 
         step.reEnterTask()
         doTask.collect();
-        toastLog('日常任务已完成，开始刷微博')
         clickId('titleLeft')
-        sleep(500)
+        sleep(1000)
 
+
+        doTask.clear();
+
+        toastLog('日常任务已完成，开始刷微博')
         doTask.刷微博()
+        sleep(500)
     }
 }
 
-doTask.clear();
+doTask.start()
+
 
 
 function Faweibo() {
@@ -247,12 +264,12 @@ function Pinglun() {
             clickTar(text('评论').findOne())
             sleep(1000)
             if(id('element_editbox').exists()){
-                let text = 'testComment' + random(2000, 3000);
-                setText(text)
+                let textStr = 'testComment' + random(2000, 3000);
+                setText(textStr)
                 clickId('com.sina.weibo:id/tv_send')
                 sleep(3000)
                 // 删除
-                clickTar(text(text).findOne().parent())
+                clickTar(text(textStr).findOne().parent())
                 sleep(400)
                 clickTar(className('android.widget.TextView').text('删除').findOne())
                 sleep(400)
@@ -326,48 +343,14 @@ function Guanzhu() {
         if (id("com.sina.weibo:id/titleText").findOnce().text() == "关注") {
             toastLog("已处于“关注列表”");
             sleep(3000);
-            if (id("com.sina.weibo:id/numbertext").findOnce() != null) {
-                var Gduo = id("com.sina.weibo:id/numbertext").findOnce().bounds();
-                click(Gduo.centerX(), Gduo.centerY());
-                toastLog("已尝试点击“更多关注”按钮");
-                sleep(4000);
-                if (text("关注").findOnce() != null) {
-                    var GZZ = text("关注").findOnce().bounds();
-                    click(GZZ.centerX(), GZZ.centerY());
-                    toastLog("已尝试点击“关注”按钮");
-                    sleep(3000);
-                    if (text("已关注").findOnce() != null) {
-                        var QXGZ = text("已关注").findOnce().bounds();
-                        click(QXGZ.centerX(), QXGZ.centerY());
-                        toastLog("已尝试点击“已关注”按钮");
-                        sleep(3000);
-                        if (className("android.widget.TextView").text("已关注").findOnce() != null) {
-                            var Aqg = className("android.widget.TextView").text("已关注").findOnce().bounds();
-                            click(Aqg.centerX(), Aqg.centerY());
-                            toastLog("已尝试点击“已关注菜单”按钮");
-                            sleep(2000);
-                            if (className("android.widget.TextView").text("取消关注").findOnce() != null) {
-                                var QG = className("android.widget.TextView").text("取消关注").findOnce().bounds();
-                                click(QG.centerX(), QG.centerY());
-                                toastLog("已尝试点击“取消关注”按钮");
-                                sleep(2000);
-                                if (className("android.widget.TextView").text("确定").findOnce() != null) {
-                                    className("android.widget.TextView").text("确定").findOnce().click();
-                                    toastLog("已尝试点击“确定取消关注”按钮");
-                                    clickId('img_back')
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
-            } else if (className("android.view.ViewGroup").clickable(true).findOne(8000) != null) {
-                className("android.view.ViewGroup").clickable(true).findOne(8000).child(2).click()
-                sleep(2000);
+            let btn = textStartsWith('粉丝数').findOnce().parent().parent().findOne(className('android.widget.Button').text('关注'))
+            if (btn != null) {
+                clickTar(btn.parent());
                 toastLog("已尝试点击“关注”按钮");
-                if (className("android.view.ViewGroup").clickable(true).findOne(8000).child(2).child(0).text() == "已关注") {
-                    var A = className("android.view.ViewGroup").clickable(true).findOne(8000).child(2).child(0).bounds();
-                    click(A.centerX(), A.centerY());
+                sleep(3000);
+                if (text("已关注").findOnce() != null) {
+                    var QXGZ = text("已关注").findOnce().bounds();
+                    click(QXGZ.centerX(), QXGZ.centerY());
                     toastLog("已尝试点击“已关注”按钮");
                     sleep(3000);
                     if (className("android.widget.TextView").text("已关注").findOnce() != null) {
@@ -383,6 +366,7 @@ function Guanzhu() {
                             if (className("android.widget.TextView").text("确定").findOnce() != null) {
                                 className("android.widget.TextView").text("确定").findOnce().click();
                                 toastLog("已尝试点击“确定取消关注”按钮");
+                                sleep(500)
                                 clickId('img_back')
                                 return true;
                             }
